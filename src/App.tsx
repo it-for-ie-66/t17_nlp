@@ -96,10 +96,11 @@ function App() {
           />
         </div>
       )}
-      {/* Displaying Answers */}
+      {/* Input and Answers */}
       {!isEdit && (
         <div>
           <h2>Question</h2>
+          {/* Input */}
           <div>
             <label htmlFor="question">Ask me anything: </label>
             <input
@@ -113,13 +114,20 @@ function App() {
               Answer
             </button>
           </div>
-          <ul>
-            {prediction?.map((p, i) => (
-              <li key={i}>
-                {p.text} (มั่นใจ {p.score.toFixed(2)})
-              </li>
-            ))}
-          </ul>
+          {/* Answer */}
+          {prediction && (
+            <ul>
+              {prediction.length !== 0 ? (
+                prediction.map((p, i) => (
+                  <li key={i}>
+                    {p.text} (มั่นใจ {p.score.toFixed(2)})
+                  </li>
+                ))
+              ) : (
+                <li>Sorry, I don't know the answer.</li>
+              )}
+            </ul>
+          )}
         </div>
       )}
     </>
