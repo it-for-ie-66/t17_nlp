@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { load_model, type Model } from "./model";
-import { infoInit } from "./utils";
+import { infoInit as info } from "./utils";
 import Highlighter from "react-highlight-words";
 
 interface Prediction {
@@ -15,8 +15,6 @@ function App() {
   const [ready, setReady] = useState<boolean>(false);
   const [question, setQuestion] = useState<string>("");
   const [prediction, setPrediction] = useState<Prediction[] | null>(null);
-  const [isEdit, setIsEdit] = useState(false);
-  const [info, setInfo] = useState<string>(infoInit);
 
   useEffect(() => {
     load_model()
@@ -29,9 +27,8 @@ function App() {
         setReady(false);
       });
   }, []);
-  if (!ready) return <>Loading....</>;
 
-  function predict() {
+  function handleClickAnswer() {
     if (!model || !question) return;
     model.findAnswers(question, info).then((answers: Prediction[]) => {
       console.log(answers);
@@ -39,97 +36,56 @@ function App() {
     });
   }
 
-  function handleEnterAnswer(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter") predict();
-  }
-
-  function handleClickAnswer() {
-    predict();
-  }
-
   function handleQuestionChange(e: React.ChangeEvent<HTMLInputElement>) {
     setQuestion(e.target.value);
   }
 
-  function handleEdit() {
-    setIsEdit(true);
-  }
-
-  function handleChangeInfo(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    setInfo(e.target.value);
-  }
-
-  function handleSave() {
-    setIsEdit(false);
-  }
-
   const disabled = !question || !ready;
 
+  if (!ready) return <>Loading....</>;
   return (
     <>
       <h1>Answering from Text</h1>
       <h2>Information</h2>
-      {/* Buttons */}
+      {/* Displaying Information */}
       <div>
-        {!isEdit ? (
-          <button onClick={handleEdit}>Edit</button>
-        ) : (
-          <button onClick={handleSave}>Save</button>
+        <Highlighter
+          textToHighlight={info}
+          searchWords={prediction?.map((p) => p.text) || []}
+          highlightStyle={{ backgroundColor: "yellow" }}
+        />
+      </div>
+      {/* Input and Answers */}
+      <div>
+        <h2>Question</h2>
+        {/* Input */}
+        <div>
+          <label htmlFor="question">Ask me anything: </label>
+          <input
+            id="question"
+            type="text"
+            onChange={handleQuestionChange}
+            style={{ width: "90vw" }}
+          />
+          <button onClick={handleClickAnswer} disabled={disabled}>
+            Answer
+          </button>
+        </div>
+        {/* Answer */}
+        {prediction && (
+          <ul>
+            {prediction.length !== 0 ? (
+              prediction.map((p, i) => (
+                <li key={i}>
+                  {p.text} (มั่นใจ {p.score.toFixed(2)})
+                </li>
+              ))
+            ) : (
+              <li>Sorry, I don't know the answer.</li>
+            )}
+          </ul>
         )}
       </div>
-      {/* Editing Information */}
-      {isEdit && (
-        <textarea
-          value={info}
-          style={{ width: "90vw" }}
-          rows={10}
-          onChange={handleChangeInfo}
-        />
-      )}
-      {/* Displaying Information */}
-      {!isEdit && (
-        <div>
-          <Highlighter
-            textToHighlight={info}
-            searchWords={prediction?.map((p) => p.text) || []}
-            highlightStyle={{ backgroundColor: "yellow" }}
-          />
-        </div>
-      )}
-      {/* Input and Answers */}
-      {!isEdit && (
-        <div>
-          <h2>Question</h2>
-          {/* Input */}
-          <div>
-            <label htmlFor="question">Ask me anything: </label>
-            <input
-              id="question"
-              type="text"
-              onChange={handleQuestionChange}
-              style={{ width: "90vw" }}
-              onKeyDown={handleEnterAnswer}
-            />
-            <button onClick={handleClickAnswer} disabled={disabled}>
-              Answer
-            </button>
-          </div>
-          {/* Answer */}
-          {prediction && (
-            <ul>
-              {prediction.length !== 0 ? (
-                prediction.map((p, i) => (
-                  <li key={i}>
-                    {p.text} (มั่นใจ {p.score.toFixed(2)})
-                  </li>
-                ))
-              ) : (
-                <li>Sorry, I don't know the answer.</li>
-              )}
-            </ul>
-          )}
-        </div>
-      )}
     </>
   );
 }
