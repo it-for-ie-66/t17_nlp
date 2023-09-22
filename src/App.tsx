@@ -29,7 +29,6 @@ function App() {
         setReady(false);
       });
   }, []);
-  if (!ready) return <>Loading....</>;
 
   function predict() {
     if (!model || !question) return;
@@ -65,6 +64,7 @@ function App() {
 
   const disabled = !question || !ready;
 
+  if (!ready) return <>Loading....</>;
   return (
     <>
       <h1>Answering from Text</h1>
